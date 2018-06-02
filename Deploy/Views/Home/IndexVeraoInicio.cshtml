@@ -1,0 +1,192 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "Marte-NASA";
+}
+
+<style type="text/css">
+    #divCenter {
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -200px;
+        margin-left: -200px;
+    }
+
+    #tabuleiro {
+        background-color: #000000;
+        border: 1px;
+    }
+
+    table tr {
+        height: 70px;
+        text-align: center;
+    }
+
+    table td {
+        background-color: #ffff00;
+        width: 100px;
+    }
+</style>
+
+<h1>Desafio Robô NASA - Conta Azul</h1>
+
+<div>
+    <label>Coordenada X</label>
+    <input id="coordX" type="number" min="0" max="4" style="width: 40px" /><br />
+
+    <label>Coordenada Y</label>
+    <input id="coordY" type="number" min="0" max="4" style="width: 40px" /><br />
+
+    <label>Orientação</label>
+    <select id="orientacao" style="width: 63px">
+        <option value="N">Norte</option>
+        <option value="E">Leste</option>
+        <option value="W">Oeste</option>
+        <option value="S">Sul</option>
+    </select>
+    <br />
+    <br />
+    <input id="move" type="button" value="Move" />
+</div>
+
+<div id="divCenter">
+    <table id="tabuleiro">
+        <tr>
+            <td id="xy04"></td>
+            <td id="xy14"></td>
+            <td id="xy24"></td>
+            <td id="xy34"></td>
+            <td id="xy44"></td>
+        </tr>
+        <tr>
+            <td id="xy03"></td>
+            <td id="xy13"></td>
+            <td id="xy23"></td>
+            <td id="xy33"></td>
+            <td id="xy43"></td>
+        </tr>
+        <tr>
+            <td id="xy02"></td>
+            <td id="xy12"></td>
+            <td id="xy22"></td>
+            <td id="xy32"></td>
+            <td id="xy42"></td>
+        </tr>
+        <tr>
+            <td id="xy01"></td>
+            <td id="xy11"></td>
+            <td id="xy21"></td>
+            <td id="xy31"></td>
+            <td id="xy41"></td>
+        </tr>
+        <tr>
+            <td id="xy00">
+                <img id="triangle" src="~/Content/image/triangulo.png" alt="Robot" /></td>
+            <td id="xy10"></td>
+            <td id="xy20"></td>
+            <td id="xy30"></td>
+            <td id="xy40"></td>
+        </tr>
+    </table>
+</div>
+<br />
+<div id="body">
+    Robots
+    <select id="selectRobot">
+        <option value="0;0;N">Selecione um Robô</option>
+    </select>
+    <ul id="robots"></ul>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        $(function () {
+            $.getJSON('/api/mars', function (robotsJsonPayload) {
+                $(robotsJsonPayload).each(function (i, item) {
+                    $('#robots').append('<li>Index: ' + item.Index + ' | Nome: ' + item.Name + ' | X: ' + item.CoordX + ' | Y: ' + item.CoordY + ' | Orientation: ' + item.Orientation + '</li>');
+                    $('#selectRobot').append('<option value="' + item.CoordX + ';' + item.CoordY + ';' + item.Orientation + '">' + item.Name + '</option>');
+                });
+            });
+        });
+    </script>
+}
+
+<br />
+<form id="AddRobotForm" method="post">
+    <h3>Add new Robot</h3>
+    <p>
+        <label for="Name">Nome:</label>
+        <input type="text" name="Name" id="Name" />
+    </p>
+    <p>
+        <label for="CoordX">Coordenada X:</label>
+        <input type="text" name="CoordX" id="CoordX" />
+    </p>
+    <p>
+        <label for="CoordY">Coordenada Y:</label>
+        <input type="text" name="CoordY" id="CoordY" />
+    </p>
+    <input type="button" id="saveRobot" value="Save" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#move').click(
+            function () {
+                var coordX = $('#coordX').val();
+                var coordY = $('#coordY').val();
+                var orientation = $('#orientacao').val();
+                moveRobot(coordX, coordY, orientation);
+            }
+        );
+
+        $('#selectRobot').change(
+            function () {
+                var splitText = $(this).val().split(';');
+                moveRobot(splitText[0], splitText[1], splitText[2]);
+            }
+        );
+
+        $('#saveRobot').click(function () {
+            $.post("api/mars",
+                  $("#AddRobotForm").serialize(),
+                  function (item) {
+                      $('#robots').append('<li>Index: ' + item.Index + ' | Nome: ' + item.Name + ' | X: ' + item.CoordX + ' | Y: ' + item.CoordY + ' | Orientation: ' + item.Orientation + '</li>');
+                      $('#selectRobot').append('<option value="' + item.CoordX + ';' + item.CoordY + ';' + item.Orientation + '">' + item.Name + '</option>');
+                  },
+                  "json"
+            );
+        });
+    });
+
+    function moveRobot(coordX, coordY, orientation) {
+        var idSelect = '#xy' + coordX + coordY;
+        var rotate = 0;
+        switch (orientation) {
+            case 'N':
+                rotate = 0;
+                break;
+            case 'E':
+                rotate = 90;
+                break;
+            case 'W':
+                rotate = -90;
+                break;
+            case 'S':
+                rotate = 180;
+                break;
+            default:
+                rotate = 0;
+                break;
+        }
+        debugger;
+        $('#triangle').prependTo(idSelect);
+        $('#triangle').rotate({
+            angle: rotate
+        });
+
+    }
+</script>

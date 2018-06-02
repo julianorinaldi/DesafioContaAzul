@@ -1,0 +1,150 @@
+﻿<style type="text/css">
+    .initialPosition {
+        height: 50px;
+        width: 50px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: 100px;
+        margin-left: -185px;
+    }
+
+    #divCenter {
+        width: 400px;
+        height: 400px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -200px;
+        margin-left: -200px;
+    }
+
+    #tabuleiro {
+        background-color: #000000;
+        border: 1px;
+    }
+
+    table tr {
+        height: 70px;
+        text-align: center;
+    }
+
+    table td {
+        background-color: #ffff00;
+        width: 70px;
+    }
+</style>
+
+<div id="divCenter">
+    <table id="tabuleiro">
+        <tr>
+            <td id="xy04"></td>
+            <td id="xy14"></td>
+            <td id="xy24"></td>
+            <td id="xy34"></td>
+            <td id="xy44"></td>
+        </tr>
+        <tr>
+            <td id="xy03"></td>
+            <td id="xy13"></td>
+            <td id="xy23"></td>
+            <td id="xy33"></td>
+            <td id="xy43"></td>
+        </tr>
+        <tr>
+            <td id="xy02"></td>
+            <td id="xy12"></td>
+            <td id="xy22"></td>
+            <td id="xy32"></td>
+            <td id="xy42"></td>
+        </tr>
+        <tr>
+            <td id="xy01"></td>
+            <td id="xy11"></td>
+            <td id="xy21"></td>
+            <td id="xy31"></td>
+            <td id="xy41"></td>
+        </tr>
+        <tr>
+            <td id="xy00"></td>
+            <td id="xy10"></td>
+            <td id="xy20"></td>
+            <td id="xy30"></td>
+            <td id="xy40"></td>
+        </tr>
+    </table>
+</div>
+
+<h1>Juliano Tiago Rinaldi</h1>
+<div>
+    Robots
+    <select id="selectRobot">
+        <option value="">Selecione um Robô</option>
+    </select>
+    <ul id="robots"></ul>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        $(function () {
+            $.getJSON('/api/mars', function (robotsJsonPayload) {
+                $(robotsJsonPayload).each(function (i, item) {
+                    $('#robots').append('<li>Index: ' + item.Index + ' | Nome: ' + item.Name + ' | X: ' + item.CoordX + ' | Y: ' + item.CoordY + ' | Orientation: ' + item.Orientation + '</li>');
+                    $('#selectRobot').append('<option value="' + item.Command + '">' + item.Index + '-' + item.Name + '</option>');
+                });
+            });
+        });
+    </script>
+}
+
+<div id="divMove" class="initialPosition">
+    <img src="~/Content/image/robot.png" />
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#selectRobot').change(function () {
+            $('#divMove').removeAttr("style");
+            MoveRobot($(this).val());
+        });
+    });
+
+    function MoveRobot(command) {
+        var direction = "N";
+
+        var directions = "WNES";
+        for (var i = 0; i < command.length; i++) {
+            if (command[i] == "R") {
+                var index = directions.indexOf(direction);
+                if (++index <= directions.length - 1)
+                    direction = directions[index];
+                else
+                    direction = directions[0];
+
+                $("#divMove").animate({ rotate: '+=90deg' }, 500);
+            }
+            if (command[i] == "L") {
+                var index = directions.indexOf(direction);
+                if (--index >= 0)
+                    direction = directions[index];
+                else
+                    direction = directions[directions.length - 1];
+
+                $("#divMove").animate({ rotate: '-=90deg' }, 500);
+            }
+
+            if (command[i] == "M" && direction == "N") {
+                $("#divMove").animate({ top: '-=72px' });
+            }
+            else if (command[i] == "M" && direction == "E") {
+                $("#divMove").animate({ left: '+=72px' });
+            }
+            else if (command[i] == "M" && direction == "S") {
+                $("#divMove").animate({ top: '+=72px' });
+            }
+            else if (command[i] == "M" && direction == "W") {
+                $("#divMove").animate({ left: '-=72px' });
+            }
+        }
+    }
+</script>
